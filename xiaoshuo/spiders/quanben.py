@@ -19,7 +19,6 @@ class QuanbenSpider(CrawlSpider):
         Rule(sle(allow=r'/c/[^_]+_[\d]+.html$'), callback=None, follow=True) # next page
     )
 
-
     def parse_book_0(self, response):
         """
         find content list from http://quanben.io/n/xianni/
@@ -28,7 +27,6 @@ class QuanbenSpider(CrawlSpider):
         """
         url = urlparse.urljoin(self.base_domain, response.xpath('//a[contains(@itemprop,"url")]/@href').extract()[0])
         return Request(url, callback=self.parse_book_1)
-
 
     def parse_book_1(self, response):
         sel = Selector(response)
