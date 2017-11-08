@@ -92,7 +92,7 @@ class QuanbenSpider(CrawlSpider):
 
         headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
-        yield Request(self.post_url, meta={"item": item}, callback=self.parse_content_1, method="POST", headers=headers, body=urllib.urlencode(frmdata),priority=PRIORITY_MID-1)
+        yield Request(self.post_url, meta={"item": item}, callback=self.parse_content_1, method="POST", headers=headers, body=urllib.urlencode(frmdata),priority=PRIORITY_MID+1)
 
     def parse_content_1(self, response):
         if 'item' in response.meta:
