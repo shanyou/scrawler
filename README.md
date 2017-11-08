@@ -29,3 +29,7 @@ Then, create a new variable USER_AGENT_LIST with the path to your text file whic
 ```python
 USER_AGENT_LIST = "/path/to/useragents.txt"
 ```
+run scrapy
+```shell
+scrapy crawl quanben
+```
