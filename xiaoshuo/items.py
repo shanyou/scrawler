@@ -20,6 +20,6 @@ class MetaItem(scrapy.Item):
 
 class ChapterItem(scrapy.Item):
     title = scrapy.Field()  # title
-    chapter = scrapy.Field()    # chapter name
+    name = scrapy.Field()    # chapter name
     num = scrapy.Field()    # chapter order
     content = scrapy.Field()    # content
