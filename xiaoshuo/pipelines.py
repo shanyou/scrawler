@@ -8,6 +8,8 @@
 from xiaoshuo.items import *
 from functools import wraps
 import os
+import codecs
+import json
 
 
 def run_once(f):
@@ -22,6 +24,10 @@ def run_once(f):
             return result
     wrapper.has_run = False
     return wrapper
+
+
+def normalize_path(path):
+    return path
 
 
 class XiaoshuoPipeline(object):
@@ -54,7 +60,19 @@ class XiaoshuoPipeline(object):
         :param spider:
         :return:
         """
-        pass
+        if not isinstance(meta, MetaItem):
+            return
+        title = meta['title']
+        d = normalize_path(os.path.join(os.getcwd(), self.root_dir, title))
+        if not os.path.exists(d):
+            os.makedirs(d)
+        meta_f = os.path.join(d, "meta.json")
+        if not os.path.exists(meta_f):
+            f = codecs.open(meta_f, 'w', encoding='utf-8')
+            line = json.dumps(dict(meta), ensure_ascii=False)
+            f.write(line)
+            f.close()
+
 
     def process_chapter(self, chapter, spider):
         """
@@ -63,4 +81,19 @@ class XiaoshuoPipeline(object):
         :param spider:
         :return:
         """
-        pass
+        if not isinstance(chapter, ChapterItem):
+            return
+
+        title = chapter['title']
+        d = normalize_path(os.path.join(os.getcwd(), self.root_dir, title))
+        if not os.path.exists(d):
+            os.makedirs(d)
+        name = chapter['name']
+        num = str(chapter['num'])
+        content_f = normalize_path(os.path.join(d, num + "_" + name + ".txt"))
+        if not os.path.exists(content_f):
+            f = codecs.open(content_f, 'w', encoding='utf-8')
+            f.write(chapter['name'])
+            for line in chapter['content']:
+                f.write(line + "\n")
+            f.close()

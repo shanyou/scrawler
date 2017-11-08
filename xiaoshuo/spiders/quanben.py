@@ -37,10 +37,10 @@ class QuanbenSpider(CrawlSpider):
     def parse_book_1(self, response):
         sel = Selector(response)
         item = MetaItem()
-        item['title'] = sel.xpath('//h1/text()').extract()
-        item['category'] = sel.xpath('//span[contains(@itemprop,"category")]/text()').extract()
-        item['author'] = sel.xpath('//span[contains(@itemprop,"author")]/text()').extract()
-        item['desc'] = sel.xpath('//div[contains(@itemprop, "description")]/node()').extract()
+        item['title'] = sel.xpath('//h1/text()').extract_first()
+        item['category'] = sel.xpath('//span[contains(@itemprop,"category")]/text()').extract_first()
+        item['author'] = sel.xpath('//span[contains(@itemprop,"author")]/text()').extract_first()
+        item['desc'] = sel.xpath('//div[contains(@itemprop, "description")]/node()').extract_first()
         # find chapter
         el_chapter = sel.xpath('//li[contains(@itemprop, "itemListElement")]/node()')
         el_chapter.extract()

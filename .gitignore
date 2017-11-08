@@ -91,3 +91,5 @@ ENV/
 # pycharm
 .idea
 .idea/**
+
+novel/**
