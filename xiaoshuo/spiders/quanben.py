@@ -40,7 +40,7 @@ class QuanbenSpider(CrawlSpider):
         item['title'] = sel.xpath('//h1/text()').extract_first()
         item['category'] = sel.xpath('//span[contains(@itemprop,"category")]/text()').extract_first()
         item['author'] = sel.xpath('//span[contains(@itemprop,"author")]/text()').extract_first()
-        item['desc'] = sel.xpath('//div[contains(@itemprop, "description")]/node()').extract_first()
+        item['desc'] = sel.xpath('//div[contains(@itemprop, "description")]/node()').extract()
         # find chapter
         el_chapter = sel.xpath('//li[contains(@itemprop, "itemListElement")]/node()')
         el_chapter.extract()
@@ -96,6 +96,3 @@ class QuanbenSpider(CrawlSpider):
             item = response.meta['item']
             item['content'] = sel.xpath("//body//text()").extract()
             return item
-
-
-
