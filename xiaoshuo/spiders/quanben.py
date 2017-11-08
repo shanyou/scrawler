@@ -9,6 +9,10 @@ from urllib2 import urlparse
 import re
 import urllib
 
+PRIORITY_LOW = 10
+PRIORITY_MID = 100
+PRIORITY_HIGH = 1000
+
 
 class QuanbenSpider(CrawlSpider):
     name = 'quanben'
@@ -32,7 +36,7 @@ class QuanbenSpider(CrawlSpider):
         :return: new request
         """
         url = urlparse.urljoin(self.base_domain, response.xpath('//a[contains(@itemprop,"url")]/@href').extract()[0])
-        return Request(url, callback=self.parse_book_1)
+        return Request(url, callback=self.parse_book_1, priority=PRIORITY_LOW)
 
     def parse_book_1(self, response):
         sel = Selector(response)
@@ -53,7 +57,7 @@ class QuanbenSpider(CrawlSpider):
             ch['url'] = content_url
             ch['name'] = s.xpath('span/text()').extract_first()
             array.append(ch)
-            yield Request(content_url, meta={'chapter': ch}, callback=self.parse_content_0)
+            yield Request(content_url, meta={'chapter': ch}, callback=self.parse_content_0, priority=PRIORITY_MID)
 
         item['chapter'] = array
         yield item
@@ -88,7 +92,7 @@ class QuanbenSpider(CrawlSpider):
 
         headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
-        yield Request(self.post_url, meta={"item": item}, callback=self.parse_content_1, method="POST", headers=headers, body=urllib.urlencode(frmdata))
+        yield Request(self.post_url, meta={"item": item}, callback=self.parse_content_1, method="POST", headers=headers, body=urllib.urlencode(frmdata),priority=PRIORITY_MID-1)
 
     def parse_content_1(self, response):
         if 'item' in response.meta:
