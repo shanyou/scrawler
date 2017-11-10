@@ -25,9 +25,9 @@ class QuanbenSpider(CrawlSpider):
     rules = (
         Rule(sle(allow=r'/c/'), callback=None, follow=True),
         Rule(sle(allow=r'/c/[^_]+_[\d]+.html$'), callback=None, follow=True),  # next page
-        Rule(sle(allow=r'/n/', deny=r'/n/[\S]+/list.html'), callback=None,
+        Rule(sle(allow=r'/n/\S+?/$'), callback=None,
              follow=False, process_request="process_book_request"),
-        Rule(sle(allow=r'/n/[\S]+/list.html'), callback="parse_book_1", follow=False),
+        Rule(sle(allow=r'/n/[\S]+/list.html'), callback="parse_book_0", follow=False),
     )
 
     def __init__(self, start_urls='', *args, **kwargs):
@@ -38,18 +38,9 @@ class QuanbenSpider(CrawlSpider):
     def process_book_request(self, request):
         # for link in requests:
         new_url = request.url + "list.html"
-        return request.replace(url=new_url, priority=PRIORITY_LOW, callback=self.parse_book_1)
+        return request.replace(url=new_url, priority=PRIORITY_LOW, callback=self.parse_book_0)
 
     def parse_book_0(self, response):
-        """
-        find content list from http://quanben.io/n/xianni/
-        :param response:
-        :return: new request
-        """
-        url = urlparse.urljoin(self.base_domain, response.xpath('//a[contains(@itemprop,"url")]/@href').extract()[0])
-        return Request(url, callback=self.parse_book_1, priority=PRIORITY_LOW)
-
-    def parse_book_1(self, response):
         sel = Selector(response)
         item = MetaItem()
         item['title'] = sel.xpath('//h1/text()').extract_first()
