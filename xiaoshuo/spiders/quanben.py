@@ -24,10 +24,21 @@ class QuanbenSpider(CrawlSpider):
 
     rules = (
         Rule(sle(allow=r'/c/'), callback=None, follow=True),
-        Rule(sle(allow=r'/n/'), callback="parse_book_0", follow=False),
-        Rule(sle(allow=r'/c/[^_]+_[\d]+.html$'), callback=None, follow=True),   # next page
-        # Rule(sle(allow=r'/n/[^/]+/[\d]+.html$'), callback="parse_content_0", follow=False),  # next page
+        Rule(sle(allow=r'/c/[^_]+_[\d]+.html$'), callback=None, follow=True),  # next page
+        Rule(sle(allow=r'/n/', deny=r'/n/[\S]+/list.html'), callback=None,
+             follow=False, process_request="process_book_request"),
+        Rule(sle(allow=r'/n/[\S]+/list.html'), callback="parse_book_1", follow=False),
     )
+
+    def __init__(self, start_urls='', *args, **kwargs):
+        super(QuanbenSpider, self).__init__(*args, **kwargs)
+        if start_urls:
+            self.start_urls = [start_urls]
+
+    def process_book_request(self, request):
+        # for link in requests:
+        new_url = request.url + "list.html"
+        return request.replace(url=new_url, priority=PRIORITY_LOW, callback=self.parse_book_1)
 
     def parse_book_0(self, response):
         """
