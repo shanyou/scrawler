@@ -9,13 +9,17 @@ import scrapy
 
 
 class MetaItem(scrapy.Item):
-    # define the fields for your item here like:
     title = scrapy.Field()
     author = scrapy.Field()
-    category = scrapy.Field()
+    tags = scrapy.Field()
     url = scrapy.Field()
     desc = scrapy.Field()
-    chapter = scrapy.Field()    # dict ["chaptername": url]
+    status = scrapy.Field()     # 连载中 完本
+    word = scrapy.Field()       # 字数
+    update = scrapy.Field()     # 更新时间
+    tclick = scrapy.Field()     # 总点击
+    trecom = scrapy.Field()     # 总推荐
+    chapter = scrapy.Field()    # dict ["chaptername": urls]
 
 
 class ChapterItem(scrapy.Item):
