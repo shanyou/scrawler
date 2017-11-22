@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import scrapy
+import re
 from scrapy.linkextractors import LinkExtractor
 from scrapy.http import Request
 from scrapy.selector import Selector
@@ -32,4 +33,28 @@ class QidianSpider(scrapy.Spider):
         item = MetaItem()
         item['title'] = sel.xpath('//div[contains(@class, "book-info")]/h1/em/text()').extract_first()
         item['author'] = sel.xpath('//div[contains(@class, "book-info")]/h1/span/a/text()').extract_first()
+        item['desc'] = ''.join(sel.xpath('//div[contains(@class, "book-intro")]/node()/text()').extract()).strip()
+        tags = sel.xpath('//p[contains(@class, "tag")]/a/text()').extract()
+        author_tags = sel.css('a.tags').xpath('text()').extract()
+        item['tags'] = tags + author_tags
+        item['url'] = response.url
+        item['status'] = sel.css('p.tag span').xpath('text()').extract_first()
+        book_info = ''.join(sel.css("div.book-info p")[2].xpath(".//text()").extract()).strip()
+        item['word'] = re.compile(u'[\S]+?\u4e07\u5b57').search(book_info).group()
+        item['tclick'] = re.compile(u'[^|]+?\u4e07\u603b\u70b9\u51fb').search(book_info).group()
+        item['trecom'] = re.compile(u'[^|]+?\u4e07\u603b\u63a8\u8350').search(book_info).group()
+
+        # chapter info
+        array = []
+        el_chapter = sel.css("div.volume ul li")
+        el_chapter.extract()
+        for index, s in enumerate(el_chapter):
+            ch = dict()
+            ch['num'] = index + 1
+            content_url = "http:" + s.xpath(".//a/@href").extract_first()
+            ch['url'] = [content_url]
+            ch['name'] = s.xpath('.//a/text()').extract_first()
+            array.append(ch)
+
+        item['chapter'] = array
         yield item
