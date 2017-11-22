@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import scrapy
 import re
+import json
 from scrapy.linkextractors import LinkExtractor
 from scrapy.http import Request
 from scrapy.selector import Selector
@@ -26,9 +27,9 @@ class QidianSpider(scrapy.Spider):
         lx = LinkExtractor(allow=r'book.qidian.com/info/')
         links = lx.extract_links(response)
         for link in links:
-            yield Request(url=link.url, priority=PRIORITY_LOW, callback=self.process_info)
+            yield Request(url=link.url, priority=PRIORITY_LOW, callback=self.process_info_0)
 
-    def process_info(self, response):
+    def process_info_0(self, response):
         sel = Selector(response)
         item = MetaItem()
         item['title'] = sel.xpath('//div[contains(@class, "book-info")]/h1/em/text()').extract_first()
@@ -44,17 +45,36 @@ class QidianSpider(scrapy.Spider):
         item['tclick'] = re.compile(u'[^|]+?\u4e07\u603b\u70b9\u51fb').search(book_info).group()
         item['trecom'] = re.compile(u'[^|]+?\u4e07\u603b\u63a8\u8350').search(book_info).group()
 
-        # chapter info
-        array = []
-        el_chapter = sel.css("div.volume ul li")
-        el_chapter.extract()
-        for index, s in enumerate(el_chapter):
-            ch = dict()
-            ch['num'] = index + 1
-            content_url = "http:" + s.xpath(".//a/@href").extract_first()
-            ch['url'] = [content_url]
-            ch['name'] = s.xpath('.//a/text()').extract_first()
-            array.append(ch)
+        # bookid
+        bookId = re.compile("/info/([\d]+)").search(response.url).group(1)
+        chapterList = response.headers.getlist('Set-Cookie')
+        if not chapterList:
+            # chapter info
+            array = []
+            el_chapter = sel.css("div.volume ul li")
+            el_chapter.extract()
+            for index, s in enumerate(el_chapter):
+                ch = dict()
+                ch['num'] = index + 1
+                content_url = "http:" + s.xpath(".//a/@href").extract_first()
+                ch['url'] = [content_url]
+                ch['name'] = s.xpath('.//a/text()').extract_first()
+                array.append(ch)
 
-        item['chapter'] = array
-        yield item
+            if not array:
+                print "chapter empty"
+            item['chapter'] = array
+            yield item
+        else:
+            csrfToken = response.headers.getlist('Set-Cookie')[0].split(';')[0]
+            ajaxUrl = "https://book.qidian.com/ajax/book/category?" + csrfToken + "&bookId=" + bookId
+            yield Request(ajaxUrl, meta={'item': item}, callback=self.process_info_1, priority=PRIORITY_MID)
+
+
+    def process_info_1(self, response):
+        if 'item' in response.meta:
+            item = response.meta['item']
+            array = dict()
+            array['qidian'] = json.loads(response.body)
+            item['chapter'] = array
+            yield item
