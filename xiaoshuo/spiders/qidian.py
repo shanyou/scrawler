@@ -16,18 +16,27 @@ class QidianSpider(scrapy.Spider):
     allowed_domains = ['qidian.com']
     start_urls = ['https://www.qidian.com/all']
 
-    def parse(self, response):
-        # extract next page
-        sel = Selector(response)
-        next_url = sel.xpath('//li/a[contains(@class, "lbf-pagination-next")]/@href').extract_first()
-        if next_url is not None:
-            yield Request(url="https:" + next_url, priority=PRIORITY_HIGH, callback=self.parse)
+    def __init__(self, start_urls='', *args, **kwargs):
+        super(QidianSpider, self).__init__(*args, **kwargs)
+        if start_urls:
+            self.start_urls = [start_urls]
 
-        # extract info page
-        lx = LinkExtractor(allow=r'book.qidian.com/info/')
-        links = lx.extract_links(response)
-        for link in links:
-            yield Request(url=link.url, priority=PRIORITY_LOW, callback=self.process_info_0)
+    def parse(self, response):
+        url = response.url
+        if re.match("book.qidian.com/info/", url):
+            self.process_info_0(response)
+        else:
+            # extract next page
+            sel = Selector(response)
+            next_url = sel.xpath('//li/a[contains(@class, "lbf-pagination-next")]/@href').extract_first()
+            if next_url is not None:
+                yield Request(url="https:" + next_url, priority=PRIORITY_HIGH, callback=self.parse)
+
+            # extract info page
+            lx = LinkExtractor(allow=r'book.qidian.com/info/')
+            links = lx.extract_links(response)
+            for link in links:
+                yield Request(url=link.url, priority=PRIORITY_LOW, callback=self.process_info_0)
 
     def process_info_0(self, response):
         sel = Selector(response)
@@ -42,8 +51,8 @@ class QidianSpider(scrapy.Spider):
         item['status'] = sel.css('p.tag span').xpath('text()').extract_first()
         book_info = ''.join(sel.css("div.book-info p")[2].xpath(".//text()").extract()).strip()
         item['word'] = re.compile(u'[\S]+?\u4e07\u5b57').search(book_info).group()
-        item['tclick'] = re.compile(u'[^|]+?\u4e07\u603b\u70b9\u51fb').search(book_info).group()
-        item['trecom'] = re.compile(u'[^|]+?\u4e07\u603b\u63a8\u8350').search(book_info).group()
+        item['tclick'] = re.compile(u'[^|]+?\u4e07\u603b\u70b9\u51fb|[^|]+?\u603b\u70b9\u51fb').search(book_info).group()
+        item['trecom'] = re.compile(u'[^|]+?\u4e07\u603b\u63a8\u8350|[^|]+?\u603b\u63a8\u8350').search(book_info).group()
 
         # bookid
         bookId = re.compile("/info/([\d]+)").search(response.url).group(1)
