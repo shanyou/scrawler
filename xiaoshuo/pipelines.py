@@ -73,7 +73,6 @@ class XiaoshuoPipeline(object):
             f.write(line)
             f.close()
 
-
     def process_chapter(self, chapter, spider):
         """
         process chapter data

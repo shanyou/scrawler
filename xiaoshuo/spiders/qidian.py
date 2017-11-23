@@ -23,8 +23,9 @@ class QidianSpider(scrapy.Spider):
 
     def parse(self, response):
         url = response.url
-        if re.match("book.qidian.com/info/", url):
-            self.process_info_0(response)
+        if re.search("book.qidian.com/info/", url):
+            for res in self.process_info_0(response=response):
+                yield res
         else:
             # extract next page
             sel = Selector(response)
@@ -86,4 +87,4 @@ class QidianSpider(scrapy.Spider):
             array = dict()
             array['qidian'] = json.loads(response.body)
             item['chapter'] = array
-            yield item
+            return item
