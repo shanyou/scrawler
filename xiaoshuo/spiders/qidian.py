@@ -51,7 +51,7 @@ class QidianSpider(scrapy.Spider):
         item['url'] = response.url
         item['status'] = sel.css('p.tag span').xpath('text()').extract_first()
         book_info = ''.join(sel.css("div.book-info p")[2].xpath(".//text()").extract()).strip()
-        item['word'] = re.compile(u'[\S]+?\u4e07\u5b57').search(book_info).group()
+        item['word'] = re.compile(u'[\S]+?\u4e07\u5b57|[\S]+?\u5b57').search(book_info).group()
         item['tclick'] = re.compile(u'[^|]+?\u4e07\u603b\u70b9\u51fb|[^|]+?\u603b\u70b9\u51fb').search(book_info).group()
         item['trecom'] = re.compile(u'[^|]+?\u4e07\u603b\u63a8\u8350|[^|]+?\u603b\u63a8\u8350').search(book_info).group()
 
